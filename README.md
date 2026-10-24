@@ -1,66 +1,128 @@
 # KB-21: Detección de emociones faciales
 
-Trabajo integrador de la Tecnicatura en Ciencia de Datos e IA, IFTS N° 18 (CABA).
+Trabajo integrador de la Tecnicatura en Ciencia de Datos e IA del IFTS N.° 18 (CABA).
 
 ## Descripción
 
-KB-21 es un estudio independiente de videojuegos (empresa ficticia). En las sesiones de prueba con jugadores, el estudio depende de encuestas posteriores, que suelen ser imprecisas. Este proyecto propone un modelo que detecte automáticamente la emoción en la cara del jugador durante la partida, para saber si el juego genera las emociones que busca el equipo de diseño.
-
-## Estado del proyecto
-
-**Preentrega.** Están terminados:
-
-- **Notebook 01:** inventario y verificación del dataset.
-- **Notebook 02:** análisis de calidad de las imágenes y limpieza.
-
-Quedan pendientes las estadísticas descriptivas, la visualización de patrones, los modelos predictivos y el tablero de Power BI.
+KB-21 es un estudio ficticio de videojuegos que busca analizar las emociones faciales de los jugadores durante una partida. El proyecto explora un conjunto de imágenes etiquetadas, estudia su calidad, entrena una red neuronal convolucional (CNN) y analiza sus resultados. También incluye un tablero de Power BI.
 
 ## Estructura del repositorio
 
+```text
+.
 ├── base_expresiones_faciales/
-│   ├── DATASET/              (no incluido, ver sección Dataset)
+│   ├── DATASET/                         # Imágenes; no se incluyen en Git
+│   │   ├── train/
+│   │   │   └── 1/ ... 7/                # Una carpeta por clase
+│   │   └── test/
+│   │       └── 1/ ... 7/
 │   ├── train_labels.csv
 │   └── test_labels.csv
 ├── Codigo/
 │   ├── 01_inventario.ipynb
-│   └── 02_calidad.ipynb
-├── Graficos/                 (gráficos generados por los notebooks)
-├── Resultados/               (archivos CSV para Power BI y para los modelos)
-├── Modelos/                  (modelos entrenados, próximamente)
+│   ├── 02_calidad.ipynb
+│   ├── 03_estadisticas.ipynb
+│   ├── 04_preparacion.ipynb
+│   ├── 05_cnn.ipynb
+│   └── 06_hipotesis.ipynb
+├── Datos/                               # Arreglos NumPy generados por el notebook 04
+│   ├── X_entrenamiento.npy
+│   ├── X_validacion.npy
+│   ├── X_prueba.npy
+│   ├── y_entrenamiento.npy
+│   ├── y_validacion.npy
+│   ├── y_prueba.npy
+│   └── pesos_clase.npy
+├── Graficos/
+│   ├── 01_imagenes_por_emocion.png
+│   ├── 02_histogramas_calidad.png
+│   ├── 03_cajas_por_emocion.png
+│   ├── 03_cara_promedio.png
+│   ├── 03_correlacion_medidas.png
+│   ├── 05_curvas_entrenamiento.png
+│   ├── 05_matriz_confusion.png
+│   └── 06_acierto_vs_calidad.png
+├── Modelos/
+│   └── cnn_emociones.keras
+├── Resultados/
+│   ├── inventario.csv
+│   ├── calidad.csv
+│   ├── dataset_limpio.csv
+│   ├── resumen_emociones.csv
+│   ├── prueba_imagenes.csv
+│   ├── predicciones_prueba.csv
+│   ├── metricas_emociones.csv
+│   ├── matriz_confusion.csv
+│   ├── acierto_por_calidad.csv
+│   └── acierto_gris_color.csv
+├── Tablero/
+│   └── KB21.pbix
+├── .gitignore
 ├── requirements.txt
+├── Trabajo Integrador – KB-21_ detección de emociones faciales (1).docx
 └── README.md
+```
+
+Los notebooks guardan sus resultados en `Datos/`, `Graficos/`, `Modelos/` y `Resultados/`. El contenido de `Datos/` se ignora en Git; puede regenerarse con el notebook 04. Las imágenes de `base_expresiones_faciales/DATASET/` también se ignoran y deben obtenerse por separado. Los CSV de etiquetas sí están incluidos.
 
 ## Dataset
 
-Las imágenes **no están incluidas en el repositorio**.
+El conjunto contiene 15.339 imágenes de rostros de 100 × 100 píxeles: 12.271 para entrenamiento y 3.068 para prueba. Cada partición debe tener las carpetas `1` a `7`, con las imágenes correspondientes a los archivos `train_labels.csv` y `test_labels.csv`.
 
-- **Contenido:** 15.339 fotos de rostros de 100×100 píxeles, divididas en `train` (12.271) y `test` (3.068), cada una con 7 carpetas numeradas. 1 = Sorpresa, 2 = Miedo, 3 = Asco, 4 = Felicidad, 5 = Tristeza, 6 = Enojo, 7 = Neutral.
+| Carpeta | Emoción |
+| --- | --- |
+| `1` | Sorpresa |
+| `2` | Miedo |
+| `3` | Asco |
+| `4` | Felicidad |
+| `5` | Tristeza |
+| `6` | Enojo |
+| `7` | Neutral |
 
-Para ejecutar los notebooks, la carpeta del dataset debe quedar en esta ubicación:
-
-```
-base_expresiones_faciales/DATASET/train/1 ... 7
-base_expresiones_faciales/DATASET/test/1 ... 7
-```
 
 ## Cómo ejecutar el proyecto
 
-Requiere Python 3.10.
-Colocar el dataset en `base_expresiones_faciales/DATASET/`, como se indica arriba.
-instalar las librerías y entorno:
-   ```
-   python -m venv venv
-   venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-   Ejecutar:
-   1. `Codigo/01_inventario.ipynb`
-   2. `Codigo/02_calidad.ipynb`
+Se utilizó Python 3.10. Para volver a generar los análisis y resultados, hace falta disponer del dataset con la estructura indicada arriba.
 
-## Resultados principales hasta ahora
+### 1. Crear el entorno e instalar dependencias
 
-- Las 15.339 imágenes se abren correctamente y coinciden al 100% con los archivos de etiquetas.
-- Las clases están muy desbalanceadas: felicidad tiene 16,8 veces más imágenes que miedo.
-- Se eliminaron 13 imágenes inutilizables (sin contraste, muy borrosas o demasiado oscuras). El dataset limpio tiene 15.326 imágenes.
+Desde la carpeta raíz del repositorio, en PowerShell:
 
-El detalle de cada decisión está en el documento del trabajo.
+```powershell
+py -3.10 -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+
+### 2. Ejecutar los notebooks
+
+Con el entorno activado, iniciar JupyterLab desde la raíz:
+
+```powershell
+python -m jupyter lab Codigo
+```
+
+Abrir y ejecutar las celdas de cada notebook en este orden:
+
+1. `Codigo/01_inventario.ipynb`: verifica archivos y etiquetas; genera el inventario.
+2. `Codigo/02_calidad.ipynb`: analiza la calidad y genera el dataset limpio.
+3. `Codigo/03_estadisticas.ipynb`: produce estadísticas y visualizaciones descriptivas.
+4. `Codigo/04_preparacion.ipynb`: prepara y separa los datos para el modelo.
+5. `Codigo/05_cnn.ipynb`: entrena y evalúa la CNN; guarda el modelo y sus métricas.
+6. `Codigo/06_hipotesis.ipynb`: analiza el acierto según la calidad de las imágenes.
+
+Ejecutarlos en orden es importante porque algunos notebooks utilizan archivos producidos por los anteriores. Las rutas del proyecto están definidas en relación con la carpeta `Codigo/`; se recomienda abrir los notebooks desde ahí y no cambiar el directorio de trabajo del kernel.
+
+### 3. Consultar los resultados
+
+- Los CSV de `Resultados/` contienen inventarios, datos limpios, métricas y predicciones.
+- `Graficos/` contiene las visualizaciones generadas durante el análisis.
+- `Modelos/cnn_emociones.keras` es el modelo entrenado.
+- `Datos/` contiene los arreglos de entrenamiento, validación y prueba que genera el notebook 04.
+- `Tablero/KB21.pbix` se puede abrir con Power BI Desktop. Para actualizarlo después de regenerar los resultados, actualizar las fuentes CSV desde `Resultados/`.
+
+## Alcance y hallazgos
+
+El flujo de análisis cubre el inventario y la verificación del dataset, el análisis de calidad, las estadísticas descriptivas, la preparación de datos, el entrenamiento y la evaluación de una CNN, y el análisis de hipótesis. En el conjunto analizado se detectaron 13 imágenes inutilizables, que se excluyeron del dataset limpio. El informe del trabajo integrador documenta el contexto y las decisiones del proyecto.
